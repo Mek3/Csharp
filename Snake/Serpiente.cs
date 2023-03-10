@@ -22,5 +22,7 @@ namespace Snake
             this.coordenadas = _coordenadas;
         }
 
+       
+
     }
 }
