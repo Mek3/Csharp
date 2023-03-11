@@ -4,7 +4,7 @@
 Console.WriteLine("Bienvenido al juego SNAKE");
 
 
-Tablero tablero = new Tablero(10, 25);
+Tablero tablero = new Tablero(35, 45);
 
 tablero.test();
 

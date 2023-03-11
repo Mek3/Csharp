@@ -9,20 +9,32 @@ namespace Snake
 {
     public class Serpiente
     {
-        public int Tamanyo { get; set; }
-        public Coordenadas? coordenadas { get; set; }
+        public int Tamanyo { get; set; } 
+        public Coordenadas coordenadas { get; set; }
 
-        public Serpiente(Coordenadas coordenadas)
+        public List<CeldaSerpiente> coordenasSerpiente { get; set; }
+
+        public Serpiente(Coordenadas coordenadas, List<CeldaSerpiente> coordenasSerpiente)
         {
             this.coordenadas = coordenadas;
+            this.coordenasSerpiente = coordenasSerpiente;
         }
+    }
 
-        public void mover(Coordenadas _coordenadas)
+    public class CeldaSerpiente
+    {
+        public int x { get; set; }
+        public int y { get; set; }
+
+        public CeldaSerpiente()
         {
-            this.coordenadas = _coordenadas;
+            
         }
 
-       
-
+        public CeldaSerpiente(int _x, int _y)
+        {
+            this.x = _x;
+            this.y = _y;
+        }
     }
 }

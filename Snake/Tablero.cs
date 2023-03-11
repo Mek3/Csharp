@@ -14,6 +14,7 @@ namespace Snake
         public Presa presa { get; set; }
         public Jugador jugador { get; set; }
 
+
         public int[,] Mattablero { get; set; } = new int[10, 25];
 
         public Tablero(int tam_x, int tam_y)
@@ -34,20 +35,35 @@ namespace Snake
             DibujarTableroEnPantalla();
 
         }
-
         public void inicializarSerpiente()
         {
             int eje_x = TamTablero_x / 2;
             int eje_y = TamTablero_y / 2;
+            int tamSerpiente = 8;
+            int mitadSerpiente = tamSerpiente / 2;
 
             Coordenadas coordenadas = new Coordenadas();
 
             coordenadas.X_Inicio = eje_x;
-            coordenadas.Y_Inicio = eje_y - 1;
+            coordenadas.Y_Inicio = eje_y - mitadSerpiente;
             coordenadas.X_Fin = eje_x;
-            coordenadas.Y_Fin = eje_y + 1;
+            coordenadas.Y_Fin = eje_y + mitadSerpiente;// -1;
 
-            this.serpiente = new Serpiente(coordenadas);
+            List<CeldaSerpiente> celdasSerpiente = new List<CeldaSerpiente>();
+
+            for (int i = mitadSerpiente; i > 0; i--)
+            {
+                celdasSerpiente.Add(new CeldaSerpiente(eje_x, eje_y - i));
+            }
+
+            celdasSerpiente.Add(new CeldaSerpiente(eje_x, eje_y));
+            
+            for (int i = 1; i < mitadSerpiente; i++) 
+            {
+                celdasSerpiente.Add(new CeldaSerpiente(eje_x, eje_y + i));
+            }
+
+            this.serpiente = new Serpiente(coordenadas, celdasSerpiente);
 
             DibujarSerpientePorDefecto();
         }
@@ -58,11 +74,10 @@ namespace Snake
                 for (int y = 1; y < TamTablero_y - 1; y++)
                 {
                     if (Mattablero[x, y] != '*')
-                        Mattablero[x, y] = ' ';
+                        Mattablero[x, y] = '-';
                 }
             }
         }
-
         public void DibujarMarco()
         {
             for (int x = 0; x < TamTablero_x; x++)
@@ -70,7 +85,6 @@ namespace Snake
                 Mattablero[x, 0] = '@';
                 Mattablero[x, TamTablero_y - 1] = '@';
             }
-
             for (int y = 0; y < TamTablero_y; y++)
             {
                 Mattablero[0, y] = '@';
@@ -79,8 +93,6 @@ namespace Snake
         }
         public void DibujarTablero()
         {
-            
-
             for (int x = 1; x < TamTablero_x - 1; x++)
             {
                 for (int y = 1; y < TamTablero_y - 1; y++)
@@ -88,7 +100,7 @@ namespace Snake
                     if (Mattablero[x, y] != '#' && Mattablero[x, y] != '*'
                         && Mattablero[x, y] != '<' && Mattablero[x, y] != '>'
                         && Mattablero[x, y] != '^' && Mattablero[x, y] != 'v')
-                        Mattablero[x, y] = ' ';
+                        Mattablero[x, y] = '-';
                 }
             }
         }
@@ -122,281 +134,158 @@ namespace Snake
 
         public void DibujarSerpientePorDefecto()
         {
-            Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '<';
-            Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio + 1] = '#';
-            Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-        }
-        public void DibujarSerpiente()
-        {
-            Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '<';
-            Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio + 1] = '#';
-            Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Fin] = '#';
-        }
+            Mattablero[serpiente.coordenasSerpiente[0].x, serpiente.coordenasSerpiente[0].y] = '<';
 
+            for (int i = 1; i < serpiente.coordenasSerpiente.Count; i++)
+            {
+                Mattablero[serpiente.coordenasSerpiente[i].x, serpiente.coordenasSerpiente[i].y] = '#';
+            }
+        }
+        public void DibujarSerpiente(char direccion)
+        {
+            Mattablero[serpiente.coordenasSerpiente[0].x, serpiente.coordenasSerpiente[0].y] = direccion;
+
+            for (int i = 1; i < serpiente.coordenasSerpiente.Count; i++)
+            {
+                Mattablero[serpiente.coordenasSerpiente[i].x, serpiente.coordenasSerpiente[i].y] = '#';
+            }
+        }
         public void moverSerpienteDerecha()
         {
-            char direccion = (char)Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio];
+            if (Mattablero[serpiente.coordenasSerpiente[0].x, serpiente.coordenasSerpiente[0].y] != '<') 
+            { 
+                int tamSerpiente = serpiente.coordenasSerpiente.Count - 1;
+                vaciarTableroDeSerpiente();
 
-            vaciarTableroDeSerpiente();
+                List<CeldaSerpiente> celdasSerpienteAux = new List<CeldaSerpiente>();
+                celdasSerpienteAux.Add(new CeldaSerpiente(serpiente.coordenasSerpiente[0].x, serpiente.coordenasSerpiente[0].y + 1));
 
-            if (direccion == '>')
-            {
-                if (serpiente.coordenadas.X_Inicio == serpiente.coordenadas.X_Fin)
+                for (int i = 0; i < tamSerpiente; i++)
                 {
-                    serpiente.coordenadas.Y_Inicio = serpiente.coordenadas.Y_Inicio + 1;
-                    serpiente.coordenadas.Y_Fin = serpiente.coordenadas.Y_Fin + 1;
-
-                    Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '>';
-                    Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Inicio - 1] = '#';
-                    Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
+                    celdasSerpienteAux.Add(new CeldaSerpiente(serpiente.coordenasSerpiente[i].x,
+                                                              serpiente.coordenasSerpiente[i].y));
                 }
-                if (serpiente.coordenadas.X_Inicio < serpiente.coordenadas.X_Fin)
-                {
-                    serpiente.coordenadas.Y_Inicio = serpiente.coordenadas.Y_Inicio + 1;
-                    serpiente.coordenadas.X_Fin = serpiente.coordenadas.X_Fin - 1;
 
-                    Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '>';
-                    Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio - 1] = '#';
-                    Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
+                serpiente.coordenasSerpiente = celdasSerpienteAux;
 
-                }
-                else if (serpiente.coordenadas.X_Inicio > serpiente.coordenadas.X_Fin)
-                {
-                    serpiente.coordenadas.Y_Inicio = serpiente.coordenadas.Y_Inicio + 1;
-                    serpiente.coordenadas.X_Fin = serpiente.coordenadas.X_Fin + 1;
+                serpiente.coordenadas.X_Inicio = serpiente.coordenasSerpiente[0].x;
+                serpiente.coordenadas.Y_Inicio = serpiente.coordenasSerpiente[0].y;
+                serpiente.coordenadas.X_Fin = serpiente.coordenasSerpiente[tamSerpiente].x;
+                serpiente.coordenadas.Y_Fin = serpiente.coordenasSerpiente[tamSerpiente].y;
 
-                    Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '>';
-                    Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio - 1] = '#';
-                    Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-                }
+                DibujarSerpiente('>');
             }
-            else if (direccion == 'v')
-            {
-                serpiente.coordenadas.Y_Inicio = serpiente.coordenadas.Y_Inicio + 1;
-                serpiente.coordenadas.X_Fin = serpiente.coordenadas.X_Fin + 1;
-
-                Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '>';
-                Mattablero[serpiente.coordenadas.X_Fin + 1, serpiente.coordenadas.Y_Inicio - 1] = '#';
-                Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-            }
-            else if (direccion == '^')
-            {
-                serpiente.coordenadas.Y_Inicio = serpiente.coordenadas.Y_Inicio + 1;
-                serpiente.coordenadas.X_Fin = serpiente.coordenadas.X_Fin - 1;
-
-                Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '>';
-                Mattablero[serpiente.coordenadas.X_Fin - 1, serpiente.coordenadas.Y_Inicio - 1] = '#';
-                Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-            }
-
         }
-
         public void moverSerpienteIzquierda()
         {
 
-            char direccion = (char)Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio];
-
-            vaciarTableroDeSerpiente();
-
-            if (direccion == '<')
+            if (Mattablero[serpiente.coordenasSerpiente[0].x, serpiente.coordenasSerpiente[0].y] != '>')
             {
-                if (serpiente.coordenadas.X_Inicio == serpiente.coordenadas.X_Fin)
-                {
-                    serpiente.coordenadas.Y_Inicio = serpiente.coordenadas.Y_Inicio - 1;
-                    serpiente.coordenadas.Y_Fin = serpiente.coordenadas.Y_Fin - 1;
-
-                    Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '<';
-                    Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Inicio + 1] = '#';
-                    Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-                }
-                if (serpiente.coordenadas.X_Inicio < serpiente.coordenadas.X_Fin)
-                {
-                    serpiente.coordenadas.Y_Inicio = serpiente.coordenadas.Y_Inicio - 1;
-                    serpiente.coordenadas.X_Fin = serpiente.coordenadas.X_Fin - 1;
-
-                    Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '<';
-                    Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio + 1] = '#';
-                    Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-
-                }
-                else if (serpiente.coordenadas.X_Inicio > serpiente.coordenadas.X_Fin)
-                {
-                    serpiente.coordenadas.Y_Inicio = serpiente.coordenadas.Y_Inicio - 1;
-                    serpiente.coordenadas.X_Fin = serpiente.coordenadas.X_Fin + 1;
-
-                    Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '<';
-                    Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio + 1] = '#';
-                    Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-                }
-            }
-            else if (direccion == 'v')
-            {
-                serpiente.coordenadas.Y_Inicio = serpiente.coordenadas.Y_Inicio - 1;
-                serpiente.coordenadas.X_Fin = serpiente.coordenadas.X_Fin + 1;
-
-                Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '<';
-                Mattablero[serpiente.coordenadas.X_Fin + 1, serpiente.coordenadas.Y_Inicio + 1] = '#';
-                Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-            }
-            else if (direccion == '^')
-            {
-                serpiente.coordenadas.Y_Inicio = serpiente.coordenadas.Y_Inicio - 1;
-                serpiente.coordenadas.X_Fin = serpiente.coordenadas.X_Fin - 1;
-
-                Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '<';
-                Mattablero[serpiente.coordenadas.X_Fin - 1, serpiente.coordenadas.Y_Inicio + 1] = '#';
-                Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-            }
-        }
-
-        public void moverSerpienteArriba()
-        {
-
-            char vieneDerecha = (char)Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin + 1];
-            char vieneIzquierda = (char)Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin - 1];
-
-            vaciarTableroDeSerpiente();
-
-            if (vieneIzquierda == '#' || vieneDerecha == '#')
-            // si viene de la izquierda o derecha
-            {
-                if (serpiente.coordenadas.X_Inicio == serpiente.coordenadas.X_Fin)//
-                {
-                    vaciarTableroDeSerpiente();
-
-                    if (serpiente.coordenadas.Y_Fin > serpiente.coordenadas.Y_Inicio)// Viene de la derecha
-                    {
-                        serpiente.coordenadas.X_Inicio = serpiente.coordenadas.X_Inicio - 1;
-                        serpiente.coordenadas.Y_Fin = serpiente.coordenadas.Y_Fin - 1;
-
-                        Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '^';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Inicio] = '#';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-                    }
-                    else
-                    {
-                        serpiente.coordenadas.X_Inicio = serpiente.coordenadas.X_Inicio - 1;
-                        serpiente.coordenadas.Y_Fin = serpiente.coordenadas.Y_Fin + 1;
-
-                        Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '^';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Inicio] = '#';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-                    }
-                }
-                else if (serpiente.coordenadas.X_Inicio < serpiente.coordenadas.X_Fin)
-                {
-                    vaciarTableroDeSerpiente();
-
-                    if (serpiente.coordenadas.Y_Fin > serpiente.coordenadas.Y_Inicio)// Viene de la derecha
-                    {
-                        serpiente.coordenadas.X_Inicio = serpiente.coordenadas.X_Inicio - 1;
-                        serpiente.coordenadas.Y_Fin = serpiente.coordenadas.Y_Fin - 1;
-
-                        Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '^';
-                        Mattablero[serpiente.coordenadas.X_Fin - 1, serpiente.coordenadas.Y_Inicio] = '#';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-                    }
-                    else
-                    {
-                        serpiente.coordenadas.X_Inicio = serpiente.coordenadas.X_Inicio - 1;
-                        serpiente.coordenadas.Y_Fin = serpiente.coordenadas.Y_Fin + 1;
-
-                        Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '^';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Inicio] = '#';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-                    }
-                }
-            }
-            else // Viene de abajo
-            {
-
+                int tamSerpiente = serpiente.coordenasSerpiente.Count - 1;
                 vaciarTableroDeSerpiente();
 
-                serpiente.coordenadas.X_Inicio = serpiente.coordenadas.X_Inicio - 1;
-                serpiente.coordenadas.X_Fin = serpiente.coordenadas.X_Fin - 1;
+                List<CeldaSerpiente> celdasSerpienteAux = new List<CeldaSerpiente>();
+                celdasSerpienteAux.Add(new CeldaSerpiente(serpiente.coordenasSerpiente[0].x, serpiente.coordenasSerpiente[0].y - 1));
 
-                Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = '^';
-                Mattablero[serpiente.coordenadas.X_Fin - 1, serpiente.coordenadas.Y_Inicio] = '#';
-                Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
+                for (int i = 0; i < tamSerpiente; i++)
+                {
+                    celdasSerpienteAux.Add(new CeldaSerpiente(serpiente.coordenasSerpiente[i].x,
+                                                              serpiente.coordenasSerpiente[i].y));
+                }
+
+                serpiente.coordenasSerpiente = celdasSerpienteAux;
+
+                serpiente.coordenadas.X_Inicio = serpiente.coordenasSerpiente[0].x;
+                serpiente.coordenadas.Y_Inicio = serpiente.coordenasSerpiente[0].y;
+                serpiente.coordenadas.X_Fin = serpiente.coordenasSerpiente[tamSerpiente].x;
+                serpiente.coordenadas.Y_Fin = serpiente.coordenasSerpiente[tamSerpiente].y;
+
+                DibujarSerpiente('<');
             }
         }
-
-        public void moverSerpienteAbajo()
+        public void moverSerpienteArriba()
         {
-            char vieneDerecha = (char)Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin + 1];
-            char vieneIzquierda = (char)Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin - 1];
-
+            int tamSerpiente = serpiente.coordenasSerpiente.Count - 1;
             vaciarTableroDeSerpiente();
 
-            if (vieneIzquierda == '#' || vieneDerecha == '#')
-            // si viene de la izquierda o derecha
+            List<CeldaSerpiente> celdasSerpienteAux = new List<CeldaSerpiente>();
+            celdasSerpienteAux.Add(new CeldaSerpiente(serpiente.coordenasSerpiente[0].x-1, serpiente.coordenasSerpiente[0].y));
+
+            for (int i = 0; i < tamSerpiente; i++)
             {
-                if (serpiente.coordenadas.X_Inicio == serpiente.coordenadas.X_Fin)//
-                {
-                    if (serpiente.coordenadas.Y_Fin > serpiente.coordenadas.Y_Inicio)// Viene de la derecha
-                    {
-                        serpiente.coordenadas.X_Inicio = serpiente.coordenadas.X_Inicio + 1;
-                        serpiente.coordenadas.Y_Fin = serpiente.coordenadas.Y_Fin - 1;
 
-                        Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = 'v';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Inicio] = '#';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-                    }
-                    else
-                    {
-                        serpiente.coordenadas.X_Inicio = serpiente.coordenadas.X_Inicio + 1;
-                        serpiente.coordenadas.Y_Fin = serpiente.coordenadas.Y_Fin + 1;
+                celdasSerpienteAux.Add(new CeldaSerpiente(serpiente.coordenasSerpiente[i].x,
+                                                          serpiente.coordenasSerpiente[i].y));
 
-                        Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = 'v';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Inicio] = '#';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-                    }
-                }
-                else if (serpiente.coordenadas.X_Inicio > serpiente.coordenadas.X_Fin)
-                {
-
-                    if (serpiente.coordenadas.Y_Fin > serpiente.coordenadas.Y_Inicio)// Viene de la derecha
-                    {
-                        serpiente.coordenadas.X_Inicio = serpiente.coordenadas.X_Inicio + 1;
-                        serpiente.coordenadas.Y_Fin = serpiente.coordenadas.Y_Fin - 1;
-
-                        Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = 'v';
-                        Mattablero[serpiente.coordenadas.X_Fin - 1, serpiente.coordenadas.Y_Inicio] = '#';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-                    }
-                    else
-                    {
-                        serpiente.coordenadas.X_Inicio = serpiente.coordenadas.X_Inicio + 1;
-                        serpiente.coordenadas.Y_Fin = serpiente.coordenadas.Y_Fin + 1;
-
-                        Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = 'v';
-                        Mattablero[serpiente.coordenadas.X_Fin + 1, serpiente.coordenadas.Y_Inicio] = '#';
-                        Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-                    }
-                }
             }
-            else // Viene de abajo
-            {
-                serpiente.coordenadas.X_Inicio = serpiente.coordenadas.X_Inicio + 1;
-                serpiente.coordenadas.X_Fin = serpiente.coordenadas.X_Fin + 1;
 
-                Mattablero[serpiente.coordenadas.X_Inicio, serpiente.coordenadas.Y_Inicio] = 'v';
-                Mattablero[serpiente.coordenadas.X_Fin + 1, serpiente.coordenadas.Y_Inicio] = '#';
-                Mattablero[serpiente.coordenadas.X_Fin, serpiente.coordenadas.Y_Fin] = '#';
-            }
+            serpiente.coordenasSerpiente = celdasSerpienteAux;
+
+            serpiente.coordenadas.X_Inicio = serpiente.coordenasSerpiente[0].x;
+            serpiente.coordenadas.Y_Inicio = serpiente.coordenasSerpiente[0].y;
+            serpiente.coordenadas.X_Fin = serpiente.coordenasSerpiente[tamSerpiente].x;
+            serpiente.coordenadas.Y_Fin = serpiente.coordenasSerpiente[tamSerpiente].y;
+
+            DibujarSerpiente('^');
         }
+        public void moverSerpienteAbajo()
+        {
+            int tamSerpiente = serpiente.coordenasSerpiente.Count - 1;
+            vaciarTableroDeSerpiente();
 
+            List<CeldaSerpiente> celdasSerpienteAux = new List<CeldaSerpiente>();
+            celdasSerpienteAux.Add(new CeldaSerpiente(serpiente.coordenasSerpiente[0].x + 1, serpiente.coordenasSerpiente[0].y));
+
+            for (int i = 0; i < tamSerpiente; i++)
+            {
+
+                celdasSerpienteAux.Add(new CeldaSerpiente(serpiente.coordenasSerpiente[i].x,
+                                                          serpiente.coordenasSerpiente[i].y));
+            }
+
+            serpiente.coordenasSerpiente = celdasSerpienteAux;
+
+            serpiente.coordenadas.X_Inicio = serpiente.coordenasSerpiente[0].x;
+            serpiente.coordenadas.Y_Inicio = serpiente.coordenasSerpiente[0].y;
+            serpiente.coordenadas.X_Fin = serpiente.coordenasSerpiente[tamSerpiente].x;
+            serpiente.coordenadas.Y_Fin = serpiente.coordenasSerpiente[tamSerpiente].y;
+
+            DibujarSerpiente('v');
+        }
         public void test()
         {
-            moverSerpienteArriba();
-            DibujarTableroEnPantalla();
-           
-            moverSerpienteArriba();
-            DibujarTableroEnPantalla();
 
+            Console.WriteLine("Arriba");
             moverSerpienteArriba();
             DibujarTableroEnPantalla();
 
+            moverSerpienteArriba();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteArriba();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteArriba();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteArriba();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteArriba();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteArriba();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteArriba();
+            DibujarTableroEnPantalla();
+
+
+            Console.WriteLine("Derecha");
+
+            moverSerpienteDerecha();
+            DibujarTableroEnPantalla();
+
             moverSerpienteDerecha();
             DibujarTableroEnPantalla();
 
@@ -404,6 +293,21 @@ namespace Snake
             DibujarTableroEnPantalla();
 
             moverSerpienteDerecha();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteDerecha();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteDerecha();
+            DibujarTableroEnPantalla();
+
+
+            Console.WriteLine("Abajo");
+
+            moverSerpienteAbajo();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteAbajo();
             DibujarTablero();
             DibujarTableroEnPantalla();
 
@@ -411,27 +315,17 @@ namespace Snake
             DibujarTableroEnPantalla();
 
             moverSerpienteAbajo();
-            DibujarTablero();
             DibujarTableroEnPantalla();
 
-            moverSerpienteAbajo();
+            Console.WriteLine("Izquierda");
+
+            moverSerpienteIzquierda();
             DibujarTableroEnPantalla();
 
-            moverSerpienteAbajo();
-            DibujarTablero();
+            moverSerpienteIzquierda();
             DibujarTableroEnPantalla();
 
-            moverSerpienteDerecha();
-            DibujarTableroEnPantalla();
-
-            moverSerpienteDerecha();
-            DibujarTablero();
-            DibujarTableroEnPantalla();
-
-            moverSerpienteAbajo();
-            DibujarTableroEnPantalla();
-
-            moverSerpienteAbajo();
+            moverSerpienteIzquierda();
             DibujarTableroEnPantalla();
 
             moverSerpienteIzquierda();
@@ -443,12 +337,83 @@ namespace Snake
             moverSerpienteIzquierda();
             DibujarTableroEnPantalla();
 
-            moverSerpienteArriba();
+            moverSerpienteIzquierda();
             DibujarTableroEnPantalla();
+
+            moverSerpienteIzquierda();
+            DibujarTableroEnPantalla();
+
+
+
+
+
+
+
+            Console.WriteLine("Derecha");
+
+            moverSerpienteDerecha();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteDerecha();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteDerecha();
+            DibujarTableroEnPantalla();
+
+            Console.WriteLine("Abajo");
+
+            moverSerpienteAbajo();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteAbajo();
+            DibujarTablero();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteAbajo();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteAbajo();
+            DibujarTableroEnPantalla();
+
+            Console.WriteLine("Derecha");
+
+
+            moverSerpienteDerecha();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteDerecha();
+            DibujarTableroEnPantalla();
+
+            Console.WriteLine("Abajo");
+
+
+            moverSerpienteAbajo();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteAbajo();
+            DibujarTableroEnPantalla();
+
+            Console.WriteLine("Izquierda");
+
+            moverSerpienteIzquierda();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteIzquierda();
+            DibujarTableroEnPantalla();
+
+            moverSerpienteIzquierda();
+            DibujarTableroEnPantalla();
+
+            Console.WriteLine("Arriba");
+
 
             moverSerpienteArriba();
             DibujarTableroEnPantalla();
 
+            moverSerpienteArriba();
+            DibujarTableroEnPantalla();
+
+            Console.WriteLine("Izquierda");
 
             moverSerpienteIzquierda();
             DibujarTableroEnPantalla();
@@ -457,4 +422,6 @@ namespace Snake
             DibujarTableroEnPantalla();
         }
     }
+
+    
 }
